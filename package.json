@@ -1,0 +1,25 @@
+{
+  "name": "soundmind",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma de streaming musical legal (Creative Commons) con motor de recomendación propio basado en IA.",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n gateway,music,web -c blue,green,magenta \"npm run dev -w services/gateway\" \"npm run dev -w services/music\" \"npm run dev -w apps/web\"",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
