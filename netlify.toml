@@ -1,0 +1,14 @@
+# Netlify — build del monorepo desde la raíz (los workspaces de npm
+# necesitan el package.json raíz, NO configurar base = apps/web).
+[build]
+  command = "npm run build -w apps/web"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# SPA: cualquier ruta cae en index.html (client-side routing)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

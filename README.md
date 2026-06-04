@@ -63,7 +63,7 @@ Levanta web (nginx, :5173), gateway (:4000) y music (:4002) con healthchecks y r
 
 | Pieza | Plataforma | Cómo |
 |---|---|---|
-| `apps/web` | **Vercel** | Importar el repo — [`vercel.json`](vercel.json) ya define build y rewrites SPA. Configurar `VITE_API_URL` con la URL del gateway. |
+| `apps/web` | **Netlify** | Importar el repo — [`netlify.toml`](netlify.toml) ya define build y redirects SPA. Configurar `VITE_API_URL` con la URL del gateway. |
 | `services/gateway` y `services/music` | **Render** | New → Blueprint → este repo — [`render.yaml`](render.yaml) crea ambos servicios Docker con healthchecks y autodeploy desde `main`. |
 
 ### Generar claves JWT de producción
@@ -75,7 +75,7 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out jwt-private.pe
 openssl pkey -in jwt-private.pem -pubout -out jwt-public.pem
 ```
 
-> ⚠️ Los `.pem` jamás se versionan (ya están en `.gitignore`). Tras el primer deploy, apunta `CORS_ORIGINS` (Render) a la URL de Vercel y `VITE_API_URL` (Vercel) a la URL del gateway.
+> ⚠️ Los `.pem` jamás se versionan (ya están en `.gitignore`). Tras el primer deploy, apunta `CORS_ORIGINS` (Render) a la URL de Netlify y `VITE_API_URL` (Netlify) a la URL del gateway.
 >
 > 💤 El free tier de Render "duerme" tras 15 min sin tráfico — [UptimeRobot](https://uptimerobot.com) (gratis) puede hacer ping a `/healthz` para mantenerlo despierto.
 
@@ -96,7 +96,7 @@ openssl pkey -in jwt-private.pem -pubout -out jwt-public.pem
 
 ## Roadmap
 
-- [x] **F1 — MVP catálogo**: búsqueda multi-fuente + reproducción + auth JWT + Docker + deploy (Vercel/Render)
+- [x] **F1 — MVP catálogo**: búsqueda multi-fuente + reproducción + auth JWT + Docker + deploy (Netlify/Render)
 - [ ] **F2 — Perfil y eventos**: historial, likes, eventos de escucha (Redis Streams), PostgreSQL
 - [ ] **F3 — IA de contenido**: embeddings + "más como esta" + onboarding de gustos
 - [ ] **F4 — IA híbrida**: filtrado colaborativo (ALS) + re-ranking contextual + explicabilidad
