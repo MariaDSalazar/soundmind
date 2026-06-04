@@ -25,5 +25,8 @@ jobs:
       - name: Tests unitarios
         run: npm test
 
+      - name: Build (mismo comando que Vercel)
+        run: npm run build -w apps/web
+
       - name: Auditoría de dependencias
         run: npm audit --audit-level=high
