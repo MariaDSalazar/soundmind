@@ -10,7 +10,7 @@
 
 Tras el cierre de la API de recomendaciones de Spotify (2024–2026), construir un recomendador musical con **datos y APIs abiertas** es un reto técnico real. SoundMind lo resuelve con:
 
-- 🎧 **Streaming 100% legal**: catálogo Creative Commons de [Jamendo](https://www.jamendo.com) y artistas independientes de [Audius](https://audius.co). Nunca se almacena ni hace proxy de audio.
+- 🎧 **Streaming 100% legal**: catálogo Creative Commons de [Jamendo](https://www.jamendo.com) y artistas independientes de [Audius](https://audius.co) en streaming completo, más el catálogo comercial de [Deezer](https://developers.deezer.com) vía previews oficiales de 30s. Nunca se almacena ni hace proxy de audio.
 - 🧠 **IA híbrida propia** (Fase 3-4): filtrado colaborativo + embeddings de contenido + contexto, con recomendaciones explicables.
 - 💸 **Costo $0**: todo corre en free tiers y open source.
 
@@ -29,7 +29,7 @@ React SPA ──HTTPS──▶ Gateway (BFF, auth JWT RS256, rate limit)
 |---|---|---|
 | `apps/web` | SPA | React 19 + TypeScript + Vite + Tailwind 4 + Zustand + TanStack Query |
 | `services/gateway` | BFF: auth, rate limit, proxy | Node 22 + Express 5 + JWT RS256 + Argon2id |
-| `services/music` | Catálogo y búsqueda multi-fuente | Node 22 + Express 5 + Zod |
+| `services/music` | Catálogo y búsqueda multi-fuente (Jamendo, Audius, Deezer) | Node 22 + Express 5 + Zod |
 | `packages/shared` | Tipos de dominio compartidos | TypeScript |
 
 **Patrones aplicados** (buscar `PATTERN:` en el código): Hexagonal Ports & Adapters, BFF, Adapter, Facade, Factory Method, Repository, Observer.
@@ -90,13 +90,14 @@ openssl pkey -in jwt-private.pem -pubout -out jwt-public.pem
 ## Créditos y licencias de recursos
 
 - Iconos UI: [Lucide](https://lucide.dev) (licencia ISC) — repositorio de iconos open source.
-- Música: APIs oficiales de [Jamendo](https://devportal.jamendo.com/) (Creative Commons) y [Audius](https://docs.audius.org/api/) (artistas independientes).
+- Música: APIs oficiales de [Jamendo](https://devportal.jamendo.com/) (Creative Commons), [Audius](https://docs.audius.org/api/) (artistas independientes) y [Deezer](https://developers.deezer.com/) (previews comerciales de 30s).
 - Metadata: [MusicBrainz](https://musicbrainz.org/) (datos abiertos) — a partir de F3.
 - **Sin assets generados por IA**: todos los recursos visuales provienen de repositorios abiertos con licencia verificable.
 
 ## Roadmap
 
 - [x] **F1 — MVP catálogo**: búsqueda multi-fuente + reproducción + auth JWT + Docker + deploy (Netlify/Render)
+- [x] **F1.5 — Pulido del catálogo**: previews comerciales (Deezer 30s), relevancia round-robin, player con feedback de errores
 - [ ] **F2 — Perfil y eventos**: historial, likes, eventos de escucha (Redis Streams), PostgreSQL
 - [ ] **F3 — IA de contenido**: embeddings + "más como esta" + onboarding de gustos
 - [ ] **F4 — IA híbrida**: filtrado colaborativo (ALS) + re-ranking contextual + explicabilidad
