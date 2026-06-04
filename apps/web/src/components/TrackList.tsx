@@ -14,7 +14,8 @@ export function TrackList({ tracks }: { tracks: Track[] }) {
   if (tracks.length === 0) {
     return (
       <p className="py-16 text-center text-sm text-zinc-500">
-        Busca algo para empezar — todo el catálogo es música libre (Creative Commons).
+        Busca algo para empezar — música libre (Creative Commons) en streaming completo y
+        catálogo comercial en previews de 30s.
       </p>
     );
   }
@@ -45,8 +46,10 @@ export function TrackList({ tracks }: { tracks: Track[] }) {
                 </p>
                 <p className="truncate text-xs text-zinc-500">{track.artist}</p>
               </div>
-              <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] uppercase tracking-wide text-zinc-500 ring-1 ring-zinc-800">
-                {track.source}
+              <span
+                className={`rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] uppercase tracking-wide ring-1 ring-zinc-800 ${track.isPreview ? 'text-amber-500' : 'text-zinc-500'}`}
+              >
+                {track.isPreview ? `${track.source} · 30s` : track.source}
               </span>
               <span className="w-10 text-right text-xs tabular-nums text-zinc-500">
                 {formatDuration(track.durationS)}

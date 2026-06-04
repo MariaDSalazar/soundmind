@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Track } from '@soundmind/shared';
 import type { MusicProvider } from '../domain/ports.js';
+import { decodeHtmlEntities } from './decode-entities.js';
 
 /**
  * PATTERN: Adapter — traduce la API de Jamendo al puerto MusicProvider.
@@ -52,8 +53,9 @@ export class JamendoAdapter implements MusicProvider {
       id: `jamendo:${t.id}`,
       source: this.source,
       sourceTrackId: t.id,
-      title: t.name,
-      artist: t.artist_name,
+      // Jamendo entrega los textos con entidades HTML escapadas
+      title: decodeHtmlEntities(t.name),
+      artist: decodeHtmlEntities(t.artist_name),
       durationS: t.duration,
       streamUrl: t.audio, // CDN oficial de Jamendo — nunca proxy propio
       artworkUrl: t.image,

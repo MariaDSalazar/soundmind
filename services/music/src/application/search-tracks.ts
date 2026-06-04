@@ -1,4 +1,4 @@
-import type { SearchResponse, TrackSource } from '@soundmind/shared';
+import type { SearchResponse, Track, TrackSource } from '@soundmind/shared';
 import type { MusicProvider } from '../domain/ports.js';
 
 /**
@@ -15,14 +15,22 @@ export class SearchTracksUseCase {
     );
 
     const sources: TrackSource[] = [];
-    const tracks = results.flatMap((result, i) => {
-      if (result.status === 'rejected') return [];
+    const bySource: Track[][] = [];
+    results.forEach((result, i) => {
+      if (result.status === 'rejected') return;
       sources.push(this.providers[i].source);
-      return result.value;
+      bySource.push(result.value);
     });
 
-    // Intercala resultados de las fuentes para no sesgar hacia una sola
-    tracks.sort((a, b) => a.title.localeCompare(b.title));
+    // Round-robin entre fuentes PRESERVANDO el orden de relevancia que
+    // ya trae cada API — sin sesgar hacia una sola fuente.
+    const tracks: Track[] = [];
+    const maxLen = Math.max(0, ...bySource.map((list) => list.length));
+    for (let i = 0; i < maxLen; i++) {
+      for (const list of bySource) {
+        if (i < list.length) tracks.push(list[i]);
+      }
+    }
 
     return { query, tracks, sources };
   }

@@ -3,8 +3,12 @@
  * Solo metadata de pistas: SoundMind nunca almacena audio (ver docs/ARQUITECTURA.md §5).
  */
 
-/** Fuentes de música legal soportadas (Creative Commons / artistas independientes). */
-export type TrackSource = 'jamendo' | 'audius';
+/**
+ * Fuentes de música legal soportadas:
+ * - jamendo/audius: streaming completo (Creative Commons / artistas independientes)
+ * - deezer: catálogo comercial vía previews oficiales de 30s
+ */
+export type TrackSource = 'jamendo' | 'audius' | 'deezer';
 
 export interface Track {
   /** Id interno: `${source}:${sourceTrackId}` */
@@ -18,6 +22,8 @@ export interface Track {
   streamUrl: string;
   artworkUrl: string | null;
   genreTags: string[];
+  /** true si streamUrl es un preview oficial de 30s (catálogo comercial). */
+  isPreview?: boolean;
 }
 
 export interface SearchResponse {

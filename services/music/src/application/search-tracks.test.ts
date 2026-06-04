@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { Track } from '@soundmind/shared';
+import type { Track, TrackSource } from '@soundmind/shared';
 import type { MusicProvider } from '../domain/ports.js';
 import { SearchTracksUseCase } from './search-tracks.js';
 
-function fakeTrack(source: 'jamendo' | 'audius', id: string): Track {
+function fakeTrack(source: TrackSource, id: string): Track {
   return {
     id: `${source}:${id}`,
     source,
@@ -17,7 +17,7 @@ function fakeTrack(source: 'jamendo' | 'audius', id: string): Track {
   };
 }
 
-const okProvider = (source: 'jamendo' | 'audius'): MusicProvider => ({
+const okProvider = (source: TrackSource): MusicProvider => ({
   source,
   search: async () => [fakeTrack(source, '1'), fakeTrack(source, '2')],
 });
@@ -44,5 +44,23 @@ describe('SearchTracksUseCase', () => {
 
     expect(result.tracks).toHaveLength(2);
     expect(result.sources).toEqual(['audius']);
+  });
+
+  it('intercala fuentes round-robin preservando la relevancia de cada API', async () => {
+    const useCase = new SearchTracksUseCase([
+      okProvider('deezer'),
+      okProvider('jamendo'),
+      okProvider('audius'),
+    ]);
+    const result = await useCase.execute('lofi');
+
+    expect(result.tracks.map((t) => t.id)).toEqual([
+      'deezer:1',
+      'jamendo:1',
+      'audius:1',
+      'deezer:2',
+      'jamendo:2',
+      'audius:2',
+    ]);
   });
 });
