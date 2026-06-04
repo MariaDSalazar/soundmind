@@ -1,0 +1,41 @@
+# Render Blueprint — despliega gateway + music con Docker (free tier).
+# En https://dashboard.render.com → New → Blueprint → conectar este repo.
+# Las variables con sync:false se piden al crear el blueprint (son secretos).
+services:
+  - type: web
+    name: soundmind-music
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./services/music/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true # CD: cada push a main redespliega
+    envVars:
+      - key: MUSIC_PORT
+        value: "10000" # puerto que Render expone por defecto
+      - key: AUDIUS_APP_NAME
+        value: soundmind
+      - key: JAMENDO_CLIENT_ID
+        sync: false # API key gratis: https://devportal.jamendo.com/
+
+  - type: web
+    name: soundmind-gateway
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./services/gateway/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: GATEWAY_PORT
+        value: "10000"
+      - key: MUSIC_SERVICE_URL
+        value: https://soundmind-music.onrender.com
+      - key: CORS_ORIGINS
+        sync: false # URL del frontend en Vercel, ej. https://soundmind.vercel.app
+      - key: JWT_PRIVATE_KEY
+        sync: false # PEM completo — ver "Generar claves" en el README
+      - key: JWT_PUBLIC_KEY
+        sync: false

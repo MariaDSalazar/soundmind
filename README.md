@@ -51,6 +51,34 @@ npm run dev
 
 Abre <http://localhost:5173>, busca algo (ej. "lofi") y reproduce. 🎶
 
+### Con Docker (un solo comando)
+
+```bash
+docker compose -f infra/docker-compose.yml up --build
+```
+
+Levanta web (nginx, :5173), gateway (:4000) y music (:4002) con healthchecks y red interna. Las variables (`JAMENDO_CLIENT_ID`...) se leen del `.env` de la raíz.
+
+## Deploy (free tier)
+
+| Pieza | Plataforma | Cómo |
+|---|---|---|
+| `apps/web` | **Vercel** | Importar el repo — [`vercel.json`](vercel.json) ya define build y rewrites SPA. Configurar `VITE_API_URL` con la URL del gateway. |
+| `services/gateway` y `services/music` | **Render** | New → Blueprint → este repo — [`render.yaml`](render.yaml) crea ambos servicios Docker con healthchecks y autodeploy desde `main`. |
+
+### Generar claves JWT de producción
+
+El gateway firma JWT con RS256. En desarrollo genera un par efímero; en producción genera el tuyo y pégalo en las env vars de Render (`JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY`):
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out jwt-private.pem
+openssl pkey -in jwt-private.pem -pubout -out jwt-public.pem
+```
+
+> ⚠️ Los `.pem` jamás se versionan (ya están en `.gitignore`). Tras el primer deploy, apunta `CORS_ORIGINS` (Render) a la URL de Vercel y `VITE_API_URL` (Vercel) a la URL del gateway.
+>
+> 💤 El free tier de Render "duerme" tras 15 min sin tráfico — [UptimeRobot](https://uptimerobot.com) (gratis) puede hacer ping a `/healthz` para mantenerlo despierto.
+
 ## Scripts
 
 | Comando | Qué hace |
@@ -68,7 +96,7 @@ Abre <http://localhost:5173>, busca algo (ej. "lofi") y reproduce. 🎶
 
 ## Roadmap
 
-- [x] **F1 — MVP catálogo**: búsqueda multi-fuente + reproducción + auth JWT
+- [x] **F1 — MVP catálogo**: búsqueda multi-fuente + reproducción + auth JWT + Docker + deploy (Vercel/Render)
 - [ ] **F2 — Perfil y eventos**: historial, likes, eventos de escucha (Redis Streams), PostgreSQL
 - [ ] **F3 — IA de contenido**: embeddings + "más como esta" + onboarding de gustos
 - [ ] **F4 — IA híbrida**: filtrado colaborativo (ALS) + re-ranking contextual + explicabilidad
