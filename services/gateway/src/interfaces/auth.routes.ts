@@ -14,11 +14,15 @@ const registerSchema = credentialsSchema.extend({
 const REFRESH_COOKIE = 'sm_refresh';
 
 function setRefreshCookie(res: Response, token: string, ttlS: number) {
-  // El refresh token solo viaja en cookie HttpOnly — inaccesible para JS (anti-XSS)
+  const isProd = process.env.NODE_ENV === 'production';
+  // El refresh token solo viaja en cookie HttpOnly — inaccesible para JS (anti-XSS).
+  // En prod el frontend (Netlify) y el gateway (Render) son dominios distintos
+  // (cross-site), así que la cookie necesita SameSite=None + Secure para viajar;
+  // en local (mismo sitio, http) se usa Lax para que funcione sin HTTPS.
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/api/v1/auth',
     maxAge: ttlS * 1000,
   });
