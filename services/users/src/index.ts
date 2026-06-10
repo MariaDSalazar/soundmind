@@ -19,7 +19,10 @@ const logger = pino({ name: 'users-service' });
 const env = loadEnv();
 
 // Clave pública para verificar JWT RS256 (el users service nunca firma).
-const publicKey = env.JWT_PUBLIC_KEY ?? (env.JWT_PUBLIC_KEY_PATH ? readFileSync(env.JWT_PUBLIC_KEY_PATH, 'utf8') : '');
+// Se admite pegar la clave en una sola línea con `\n` literales (paneles como
+// Render rompen los saltos reales); aquí se reconstruyen.
+const rawPublicKey = env.JWT_PUBLIC_KEY ?? (env.JWT_PUBLIC_KEY_PATH ? readFileSync(env.JWT_PUBLIC_KEY_PATH, 'utf8') : '');
+const publicKey = rawPublicKey.includes('\\n') ? rawPublicKey.replace(/\\n/g, '\n') : rawPublicKey;
 if (!publicKey) {
   logger.warn('Sin JWT_PUBLIC_KEY — la verificación de tokens fallará. Configura la misma clave pública del gateway.');
 }

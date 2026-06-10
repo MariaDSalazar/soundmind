@@ -16,11 +16,20 @@ export interface KeyPair {
  * 3. Par efímero generado al arrancar — solo desarrollo.
  * Las claves NUNCA se versionan en git.
  */
+/**
+ * Normaliza un PEM venido de una variable de entorno: algunos paneles (Render)
+ * rompen los saltos de línea reales, así que se permite pegar la clave en UNA
+ * sola línea usando `\n` literales, que aquí se convierten en saltos reales.
+ */
+function normalizePem(pem: string): string {
+  return pem.includes('\\n') ? pem.replace(/\\n/g, '\n') : pem;
+}
+
 export function loadKeys(env: NodeJS.ProcessEnv): KeyPair {
   if (env.JWT_PRIVATE_KEY && env.JWT_PUBLIC_KEY) {
     return {
-      privateKey: env.JWT_PRIVATE_KEY,
-      publicKey: env.JWT_PUBLIC_KEY,
+      privateKey: normalizePem(env.JWT_PRIVATE_KEY),
+      publicKey: normalizePem(env.JWT_PUBLIC_KEY),
     };
   }
 
