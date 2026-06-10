@@ -58,6 +58,22 @@ describe('RecordListenEventUseCase', () => {
     expect(events.saved).toHaveLength(0);
     expect(stream.published).toHaveLength(0);
   });
+
+  it('usa now()/newId() reales por defecto cuando no se inyectan', async () => {
+    const events = new FakeEvents();
+    const stream = new FakeStream();
+    // Sin inyectar now/newId → ejercita los valores por defecto del constructor.
+    const useCase = new RecordListenEventUseCase(events, stream, consent(true));
+
+    const result = await useCase.execute('user-1', input);
+
+    expect(result).toBe('recorded');
+    expect(events.saved).toHaveLength(1);
+    const ev = events.saved[0];
+    expect(ev.eventId).toMatch(/^[0-9a-f-]{36}$/); // UUID real (randomUUID)
+    expect(ev.contextHour).toBeGreaterThanOrEqual(0);
+    expect(ev.contextHour).toBeLessThanOrEqual(23);
+  });
 });
 
 // Tipo solo para asegurar que Like se exporta del dominio (sanity de tipos).

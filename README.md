@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/MariaDSalazar/soundmind/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 [![CodeQL](https://github.com/MariaDSalazar/soundmind/actions/workflows/codeql.yml/badge.svg)](.github/workflows/codeql.yml)
+[![cobertura dominio](https://img.shields.io/badge/cobertura%20dominio-%3E80%25-success)](.github/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](services/recommender)
@@ -136,6 +137,7 @@ El **Recommender** (Python) y los **batch** son opcionales en local — ver
 | `npm run dev` | Levanta los 4 servicios Node/web en paralelo |
 | `npm run typecheck` | TypeScript estricto en todos los workspaces |
 | `npm test` | Tests unitarios (Vitest); el recommender usa `pytest` |
+| `npm run test:coverage` | Cobertura de **dominio + aplicación** con umbral 80% (CI la exige) |
 | `node --env-file=.env scripts/_apply-migrations.mjs` | Aplica las migraciones SQL |
 
 ## 💡 Lo que aprendí / trade-offs
@@ -168,7 +170,7 @@ El **Recommender** (Python) y los **batch** son opcionales en local — ver
 - [x] **F2 — Perfil y eventos**: registro/login, likes, historial reproducible, Redis Streams, PostgreSQL, consentimiento (GDPR) — **desplegado**
 - [x] **F3 — IA de contenido**: embeddings + "más como esta" + onboarding — **desplegado**
 - [x] **F4 — IA híbrida**: colaborativo (ALS) + re-ranking contextual + explicabilidad — **desplegado**
-- [ ] **F5 — Pulido**: diagramas C4 ✓, Dependabot + CodeQL ✓, README ✓; pendiente cobertura >80% y video demo
+- [ ] **F5 — Pulido**: diagramas C4 ✓, Dependabot + CodeQL ✓, README ✓, cobertura de dominio >80% ✓ (CI la exige); pendiente video demo y Lighthouse
 
 ## Licencia
 

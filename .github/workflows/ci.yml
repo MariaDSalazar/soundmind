@@ -22,8 +22,8 @@ jobs:
       - name: Typecheck (TypeScript estricto)
         run: npm run typecheck
 
-      - name: Tests unitarios
-        run: npm test
+      - name: Tests + cobertura de dominio (umbral 80%)
+        run: npm run test:coverage
 
       - name: Build (mismo comando que Vercel)
         run: npm run build -w apps/web
@@ -40,8 +40,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      # El ranker híbrido (F4) es lógica pura: solo necesita pydantic para testear.
-      - name: Tests del recommender (ranker híbrido)
+      # El dominio del recommender (ranker + casos de uso) es lógica pura: solo
+      # necesita pydantic para testear. Cobertura con umbral 80% (§13).
+      - name: Tests + cobertura del recommender (umbral 80%)
+        working-directory: services/recommender
         run: |
-          pip install pydantic pytest
-          python -m pytest services/recommender/tests -q
+          pip install pydantic pytest pytest-cov
+          python -m pytest tests --cov=app/application --cov=app/domain --cov-fail-under=80 -q
