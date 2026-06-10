@@ -1,10 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
-import type { Track } from '@soundmind/shared';
+import type { RecommendationReason, RecommendedTrack, Track } from '@soundmind/shared';
 import { getForMe, getSimilar } from '../lib/api';
 import { useDiscoverStore } from '../store/discover';
 import { Onboarding } from './Onboarding';
 import { TrackList } from './TrackList';
+
+/** Traduce el `reason` (§6.5) a un texto humano por pista. */
+function reasonText(r: RecommendationReason): string {
+  const base =
+    r.type === 'collaborative'
+      ? 'Oyentes como tú lo escuchan'
+      : r.type === 'similar_track'
+        ? 'Similar a la que elegiste'
+        : 'Por tu gusto';
+  return r.context ? `${base} · ${r.context}` : base;
+}
+
+function reasonLabels(tracks: RecommendedTrack[]): Record<string, string> {
+  return Object.fromEntries(tracks.map((t) => [t.id, reasonText(t.reason)]));
+}
 
 interface Props {
   /** null si no hay sesión: el modo "similar" es público, el personal pide login. */
@@ -30,10 +45,11 @@ export function DiscoverView({ token, likedIds, onToggleLike }: Props) {
     enabled: !!similarTo,
   });
 
-  // Modo personal (requiere sesión).
+  // Modo personal (requiere sesión). Pasa la hora local del cliente para el
+  // re-ranking contextual (§6.3).
   const forMe = useQuery({
     queryKey: ['forme'],
-    queryFn: () => getForMe(token!),
+    queryFn: () => getForMe(token!, new Date().getHours()),
     enabled: !similarTo && !!token,
   });
 
@@ -55,6 +71,7 @@ export function DiscoverView({ token, likedIds, onToggleLike }: Props) {
             likedIds={likedIds}
             onToggleLike={onToggleLike}
             onSimilar={(t) => setSimilarTo(t)}
+            reasonLabels={reasonLabels(similar.data ?? [])}
           />
         )}
       </section>
@@ -93,6 +110,7 @@ export function DiscoverView({ token, likedIds, onToggleLike }: Props) {
           likedIds={likedIds}
           onToggleLike={onToggleLike}
           onSimilar={(t) => setSimilarTo(t)}
+          reasonLabels={reasonLabels(tracks)}
         />
       )}
     </section>

@@ -156,9 +156,12 @@ export async function onboard(token: string, genres: string[]): Promise<Onboardi
   );
 }
 
-/** "Para ti": recomendaciones según el gusto. `onboarded=false` → mostrar onboarding. */
-export async function getForMe(token: string): Promise<ForMeResponse> {
-  return unwrap(await fetch(`${API_URL}/recommendations/for-me`, { headers: authHeaders(token) }));
+/** "Para ti": recomendaciones híbridas. `hour` (0..23) da contexto para el
+ * re-ranking. `onboarded=false` → mostrar onboarding. */
+export async function getForMe(token: string, hour?: number): Promise<ForMeResponse> {
+  const url = new URL(`${API_URL}/recommendations/for-me`);
+  if (hour !== undefined) url.searchParams.set('hour', String(hour));
+  return unwrap(await fetch(url, { headers: authHeaders(token) }));
 }
 
 /** "Más como esta": pistas similares a una dada (por contenido). Pública. */

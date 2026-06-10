@@ -1,5 +1,7 @@
 """Rutas HTTP (borde). Validación con Pydantic; los casos de uso hacen el trabajo.
 Montadas tras el gateway en /api/v1/recommendations (ver buildRecommenderProxyRoutes)."""
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, Query
 
 from ..application.use_cases import (
@@ -35,8 +37,12 @@ def build_router(
 
     @router.get("/for-me", response_model=ForMeResponse)
     def get_for_me(
-        limit: int = Query(20, ge=1, le=50), user_id: int = Depends(current_user_id)
+        limit: int = Query(20, ge=1, le=50),
+        hour: int | None = Query(None, ge=0, le=23, description="Hora local 0..23 para el contexto"),
+        user_id: int = Depends(current_user_id),
     ):
-        return for_me.execute(user_id, limit)
+        # Si el cliente no manda su hora local, se usa la del servidor (UTC).
+        effective_hour = hour if hour is not None else datetime.now(timezone.utc).hour
+        return for_me.execute(user_id, hour=effective_hour, limit=limit)
 
     return router

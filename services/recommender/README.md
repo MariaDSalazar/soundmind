@@ -1,9 +1,14 @@
-# Recommender service (F3 · IA de contenido)
+# Recommender service (F3 contenido · F4 colaborativo + híbrido)
 
-Servicio de recomendación **v1** (contenido por texto). FastAPI + pgvector.
-**No lleva torch**: solo ejecuta consultas de similitud coseno; los embeddings los
-genera el batch en GitHub Actions (ver [ADR-012](../../docs/adr/ADR-012-recommender-v1-batch-embeddings.md)
-y [F3-DISENO-RECOMMENDER.md](../../docs/F3-DISENO-RECOMMENDER.md)).
+Servicio de recomendación **híbrido**. FastAPI + pgvector. **No lleva ML pesado**:
+solo coseno (contenido) y producto interno (colaborativo) en pgvector. Los
+embeddings y los factores ALS los genera el batch en GitHub Actions
+(ver [ADR-012](../../docs/adr/ADR-012-recommender-v1-batch-embeddings.md),
+[ADR-013](../../docs/adr/ADR-013-recommender-v2-colaborativo-hibrido.md),
+[F3](../../docs/F3-DISENO-RECOMMENDER.md) y [F4](../../docs/F4-DISENO-RECOMMENDER-V2.md)).
+
+`GET /for-me` es híbrido: mezcla contenido + colaborativo, cae a contenido cuando
+no hay señal colaborativa, y re-rankea por contexto (`?hour=` opcional, 0..23).
 
 ## Endpoints (tras el gateway en `/api/v1/recommendations`)
 

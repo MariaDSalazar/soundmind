@@ -104,12 +104,17 @@ export interface HistoryPage {
  * "Porque escuchaste X". Diferenciador frente a las cajas negras comerciales.
  */
 export interface RecommendationReason {
-  /** "similar_track" (vecino de un ancla) | "taste" (centroide de gustos). */
-  type: 'similar_track' | 'taste';
-  /** Señal usada: por ahora "tags" | "content" (texto). Acústico/colab en F4. */
+  /**
+   * "similar_track" (vecino de un ancla) | "taste" (centroide de gustos, F3) |
+   * "collaborative" (ALS, "oyentes como tú", F4).
+   */
+  type: 'similar_track' | 'taste' | 'collaborative';
+  /** Señal usada: "tags" | "content" (texto) | "als" (colaborativo). */
   signal: string;
   /** trackId ancla cuando type === "similar_track". */
   anchor?: string | null;
+  /** Nota contextual (§6.3), p.ej. afinidad de hora; null si no aplica. */
+  context?: string | null;
 }
 
 /** Pista recomendada: un `Track` enriquecido con score [0..1] y su explicación. */

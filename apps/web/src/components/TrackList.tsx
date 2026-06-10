@@ -17,9 +17,11 @@ interface Props {
   onToggleLike?: (track: Track) => void;
   /** "Más como esta" (F3); si es undefined, no se muestra el botón. */
   onSimilar?: (track: Track) => void;
+  /** Texto del "porqué" por trackId (F4 explicabilidad); opcional. */
+  reasonLabels?: Record<string, string>;
 }
 
-export function TrackList({ tracks, likedIds, onToggleLike, onSimilar }: Props) {
+export function TrackList({ tracks, likedIds, onToggleLike, onSimilar, reasonLabels }: Props) {
   const { current, isPlaying, play, toggle } = usePlayerStore();
 
   if (tracks.length === 0) {
@@ -62,6 +64,12 @@ export function TrackList({ tracks, likedIds, onToggleLike, onSimilar }: Props) 
                   {isCurrent && isPlaying && <Equalizer className="shrink-0" />}
                 </p>
                 <p className="truncate text-xs text-zinc-400">{track.artist}</p>
+                {reasonLabels?.[track.id] && (
+                  <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-fuchsia-300/80">
+                    <Sparkles className="size-3 shrink-0" />
+                    <span className="truncate">{reasonLabels[track.id]}</span>
+                  </p>
+                )}
               </div>
             </button>
 

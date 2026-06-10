@@ -2,7 +2,7 @@
 infraestructura (pgvector) los implementa. Los casos de uso dependen SOLO de esto."""
 from typing import Protocol
 
-from .models import TrackReco
+from .models import Candidate, TrackReco
 
 
 class RecommendationRepository(Protocol):
@@ -14,8 +14,9 @@ class RecommendationRepository(Protocol):
         """Vecinos por coseno del embedding del track ancla."""
         ...
 
-    def for_user(self, user_id: int, limit: int) -> tuple[bool, list[TrackReco]]:
-        """(onboarded, recomendaciones por taste_vec excluyendo lo ya escuchado)."""
+    def candidates_for_user(self, user_id: int, pool: int) -> tuple[bool, list[Candidate]]:
+        """(onboarded, candidatos con señales crudas de contenido+colaborativo+
+        contexto, excluyendo lo ya escuchado). El ranker híbrido los combina."""
         ...
 
     def seed_taste_from_genres(self, user_id: int, genres: list[str]) -> bool:

@@ -1,0 +1,8 @@
+# Batch colaborativo (F4) — corre en GitHub Actions, NO en Render.
+# `implicit` (ALS) arrastra scipy/BLAS; por eso vive aquí, fuera del serving.
+# numpy<2 + scipy 1.13 = combo compatible con implicit 0.7.2.
+implicit==0.7.2
+numpy==1.26.4
+scipy==1.13.1
+psycopg[binary]==3.2.3
+pgvector==0.3.6

@@ -30,3 +30,18 @@ jobs:
 
       - name: Auditoría de dependencias
         run: npm audit --audit-level=high
+
+  recommender:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # El ranker híbrido (F4) es lógica pura: solo necesita pydantic para testear.
+      - name: Tests del recommender (ranker híbrido)
+        run: |
+          pip install pydantic pytest
+          python -m pytest services/recommender/tests -q

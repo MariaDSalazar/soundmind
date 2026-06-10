@@ -4,7 +4,7 @@ consultas de similitud coseno en pgvector (`<=>` = distancia coseno). Este es el
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-from ..domain.models import Reason, TrackReco
+from ..domain.models import Candidate, Reason, TrackReco
 
 # Columnas de `tracks` + score; orden fijo para mapear a TrackReco.
 _TRACK_COLS = """
@@ -27,6 +27,25 @@ def _to_reco(row: dict, reason: Reason) -> TrackReco:
         isPreview=row["is_preview"],
         score=float(row["score"]),
         reason=reason,
+    )
+
+
+def _to_candidate(row: dict) -> Candidate:
+    return Candidate(
+        id=row["id"],
+        source=row["source"],
+        sourceTrackId=row["source_track_id"],
+        title=row["title"],
+        artist=row["artist"],
+        durationS=row["duration_s"],
+        streamUrl=row["stream_url"],
+        artworkUrl=row["artwork_url"],
+        genreTags=row["genre_tags"] or [],
+        isPreview=row["is_preview"],
+        content_score=row["content_score"],
+        collab_score=row["collab_score"],
+        avg_hour=row["avg_hour"],
+        recently_skipped=row["recently_skipped"],
     )
 
 
@@ -67,41 +86,50 @@ class PgRecommendationRepository:
             reason = Reason(type="similar_track", signal="tags", anchor=track_id)
             return [_to_reco(r, reason) for r in cur.fetchall()]
 
-    def for_user(self, user_id: int, limit: int) -> tuple[bool, list[TrackReco]]:
+    def candidates_for_user(self, user_id: int, pool: int) -> tuple[bool, list[Candidate]]:
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT onboarded, taste_vec IS NOT NULL AS has_taste "
-                    "FROM user_profiles WHERE user_id = %s",
-                    (user_id,),
-                )
+                cur.execute("SELECT onboarded FROM user_profiles WHERE user_id = %s", (user_id,))
                 prof = cur.fetchone()
             if prof is None:
                 return (False, [])  # sin perfil → la UI muestra onboarding
-            onboarded, has_taste = prof
-            if not has_taste:
-                return (onboarded, [])
+            onboarded = prof[0]
 
+            # Una sola query trae ambas señales (coseno de contenido + producto
+            # interno colaborativo) y el contexto. Las subconsultas escalares de
+            # taste_vec/factors dan NULL si el usuario no tiene esa señal → el
+            # ranker hace fallback. Se excluye lo ya reproducido/completado.
             with conn.cursor(row_factory=dict_row) as cur:
                 cur.execute(
                     f"""
                     SELECT {_TRACK_COLS},
-                           1 - (e.content_vec <=> p.taste_vec) AS score
-                    FROM user_profiles p
-                    JOIN track_embeddings e ON TRUE
-                    JOIN tracks t ON t.id = e.track_id
-                    WHERE p.user_id = %s AND p.taste_vec IS NOT NULL
-                      AND NOT EXISTS (
+                      CASE WHEN e.content_vec IS NOT NULL THEN
+                        1 - (e.content_vec <=> (SELECT taste_vec FROM user_profiles WHERE user_id = %(uid)s))
+                      END AS content_score,
+                      CASE WHEN f.factors IS NOT NULL THEN
+                        -(f.factors <#> (SELECT factors FROM user_factors WHERE user_id = %(uid)s))
+                      END AS collab_score,
+                      ts.avg_hour,
+                      EXISTS (
                         SELECT 1 FROM listen_events le
-                        WHERE le.user_id = p.user_id AND le.track_id = t.id
-                      )
-                    ORDER BY e.content_vec <=> p.taste_vec
-                    LIMIT %s
+                        WHERE le.user_id = %(uid)s AND le.track_id = t.id AND le.event_type = 'skip'
+                      ) AS recently_skipped
+                    FROM tracks t
+                    LEFT JOIN track_embeddings e ON e.track_id = t.id
+                    LEFT JOIN track_factors f ON f.track_id = t.id
+                    LEFT JOIN track_stats ts ON ts.track_id = t.id
+                    WHERE NOT EXISTS (
+                      SELECT 1 FROM listen_events le
+                      WHERE le.user_id = %(uid)s AND le.track_id = t.id
+                        AND le.event_type IN ('play', 'complete')
+                    )
+                      AND (e.content_vec IS NOT NULL OR f.factors IS NOT NULL)
+                    ORDER BY COALESCE(content_score, 0) + COALESCE(collab_score, 0) DESC
+                    LIMIT %(pool)s
                     """,
-                    (user_id, limit),
+                    {"uid": user_id, "pool": pool},
                 )
-                reason = Reason(type="taste", signal="content")
-                return (onboarded, [_to_reco(r, reason) for r in cur.fetchall()])
+                return (onboarded, [_to_candidate(r) for r in cur.fetchall()])
 
     def seed_taste_from_genres(self, user_id: int, genres: list[str]) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:

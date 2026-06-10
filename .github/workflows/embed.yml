@@ -1,7 +1,9 @@
-name: embed-tracks
+name: train-recommender
 
-# Job batch de embeddings del Recommender v1 (F3). Corre en el runner de GitHub
-# (no en Render) porque sentence-transformers necesita torch (~700MB). Ver ADR-012.
+# Batch nocturno del Recommender. Corre en el runner de GitHub (no en Render):
+#  - embed:  embeddings de contenido (F3, torch). Ver ADR-012.
+#  - collab: ALS colaborativo + track_stats (F4, implicit). Ver ADR-013.
+# `collab` necesita los tracks ya ingeridos por `embed`, de ahí el `needs`.
 on:
   schedule:
     - cron: '0 4 * * *'   # 04:00 UTC, nocturno
@@ -9,7 +11,7 @@ on:
 
 # Evita solapes si un run tarda más que el intervalo.
 concurrency:
-  group: embed-tracks
+  group: train-recommender
   cancel-in-progress: false
 
 jobs:
@@ -27,7 +29,27 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r jobs/embed/requirements.txt
 
-      - name: Generar embeddings
+      - name: Generar embeddings (contenido)
         run: python jobs/embed/embed.py
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  collab:
+    needs: embed          # los factores referencian tracks ya ingeridos (FK)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: jobs/collab/requirements.txt
+
+      - name: Instalar dependencias
+        run: pip install -r jobs/collab/requirements.txt
+
+      - name: Entrenar ALS colaborativo + stats
+        run: python jobs/collab/train_als.py
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

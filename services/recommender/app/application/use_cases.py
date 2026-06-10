@@ -2,6 +2,7 @@
 que detrás hay pgvector — inversión de dependencias en práctica."""
 from ..domain.models import ForMeResponse, OnboardingResult, TrackReco
 from ..domain.ports import RecommendationRepository
+from .ranking import rank_candidates
 
 MAX_LIMIT = 50
 
@@ -23,13 +24,18 @@ class GetSimilarTracks:
 
 
 class GetRecommendationsForUser:
-    """'Para ti': recomendaciones por taste_vec, excluyendo lo ya escuchado."""
+    """'Para ti' HÍBRIDO (F4): mezcla contenido (F3) + colaborativo (ALS) y
+    re-rankea por contexto (hora, skips). Cae a contenido cuando no hay señal
+    colaborativa. `hour` es la hora local del cliente (0..23) para el contexto."""
 
     def __init__(self, repo: RecommendationRepository):
         self._repo = repo
 
-    def execute(self, user_id: int, limit: int = 20) -> ForMeResponse:
-        onboarded, tracks = self._repo.for_user(user_id, _clamp(limit, 20))
+    def execute(self, user_id: int, hour: int, limit: int = 20) -> ForMeResponse:
+        clamped = _clamp(limit, 20)
+        # Pool de candidatos más amplio que el límite: el ranker re-ordena dentro.
+        onboarded, candidates = self._repo.candidates_for_user(user_id, pool=max(clamped * 4, 40))
+        tracks = rank_candidates(candidates, hour=hour, limit=clamped)
         return ForMeResponse(onboarded=onboarded, tracks=tracks)
 
 
