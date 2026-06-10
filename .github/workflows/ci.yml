@@ -25,7 +25,7 @@ jobs:
       - name: Tests + cobertura de dominio (umbral 80%)
         run: npm run test:coverage
 
-      - name: Build (mismo comando que Vercel)
+      - name: Build (mismo comando que Netlify)
         run: npm run build -w apps/web
 
       - name: Auditoría de dependencias

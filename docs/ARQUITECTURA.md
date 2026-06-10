@@ -53,7 +53,7 @@ Se adopta una **arquitectura de microservicios ligera** (3 servicios) sobre **Cl
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                          CLIENTE                                │
-│   React + TypeScript (SPA/PWA) — Vercel                         │
+│   React + TypeScript (SPA/PWA) — Netlify                        │
 └───────────────┬─────────────────────────────┬───────────────────┘
                 │ HTTPS / REST (JSON)         │ WebSocket (eventos)
                 ▼                             ▼
@@ -121,7 +121,7 @@ src/
 | Caché / cola | **Upstash Redis** (10k comandos/día) | Gratis |
 | Auth | JWT propio (RS256) + OAuth 2.0 social (GitHub/Google) | Gratis |
 | CI/CD | GitHub Actions | Gratis (repos públicos) |
-| Hosting frontend | Vercel / Cloudflare Pages | Gratis |
+| Hosting frontend | Netlify / Cloudflare Pages | Gratis |
 | Hosting backend | Render / Railway / Fly.io free tier | Gratis |
 | Observabilidad | Pino (logs) + Sentry free tier + UptimeRobot | Gratis |
 | Documentación API | OpenAPI 3.1 + Swagger UI | Gratis / open source |
@@ -257,7 +257,7 @@ Onboarding: el usuario elige 3–5 géneros/artistas → recomendación por cont
 - Solo se guardan: email (hash de verificación), preferencias y eventos de escucha. **Sin datos sensibles.**
 - Consentimiento explícito para tracking de escucha (banner + toggle en perfil) — alineado a GDPR/LOPD.
 - Endpoint `DELETE /api/v1/me` → borrado total (derecho al olvido).
-- TLS en todo (Vercel/Render lo dan gratis); cifrado at-rest incluido en Supabase/Neon.
+- TLS en todo (Netlify/Render lo dan gratis); cifrado at-rest incluido en Neon.
 
 ### Modelo de amenazas (resumen STRIDE)
 | Amenaza | Mitigación |
@@ -298,7 +298,7 @@ recommendations(id, user_id, track_id, score, reason jsonb, model_version,
 GitHub (monorepo)
    └── GitHub Actions
         ├── CI: lint + test + audit + CodeQL (en cada PR)
-        ├── CD frontend  → Vercel (preview por PR + prod en main)
+        ├── CD frontend  → Netlify (preview por PR + prod en main)
         ├── CD servicios → Render (Docker, autodeploy desde main)
         └── cron nocturno → re-entrenamiento del modelo + publicación de artefacto
 ```
@@ -356,7 +356,7 @@ soundmind/
 - [ ] OpenAPI navegable (Swagger UI público)
 - [ ] Tests unitarios en dominio + tests de integración por servicio
 - [ ] CodeQL y Dependabot activos y en verde
-- [ ] Demo en vivo desplegada (Vercel + Render) linkeada en el README
+- [x] Demo en vivo desplegada (Netlify + Render) linkeada en el README
 - [ ] Sección "Lo que aprendí / trade-offs" — los reclutadores la valoran más que el código
 
 ---
