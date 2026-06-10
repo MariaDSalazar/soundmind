@@ -5,6 +5,8 @@ import pg from 'pg';
 const files = [
   'services/gateway/migrations/001_users.sql',
   'services/users/migrations/001_likes_listen_events.sql',
+  'services/users/migrations/002_listen_events_track_snapshot.sql',
+  'services/recommender/migrations/003_tracks_embeddings_profiles.sql',
 ];
 
 const pool = new pg.Pool({
@@ -20,7 +22,8 @@ for (const f of files) {
 
 const { rows } = await pool.query(
   `SELECT table_name FROM information_schema.tables
-   WHERE table_schema='public' AND table_name IN ('users','likes','listen_events')
+   WHERE table_schema='public' AND table_name IN
+     ('users','likes','listen_events','tracks','track_embeddings','user_profiles','recommendations')
    ORDER BY table_name`,
 );
 console.log('Tablas presentes:', rows.map((r) => r.table_name).join(', '));

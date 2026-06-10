@@ -27,3 +27,11 @@ Thumbs.db
 
 # Cobertura de tests
 coverage/
+
+# Python (servicio recommender + batch de embeddings)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/

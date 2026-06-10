@@ -1,0 +1,33 @@
+name: embed-tracks
+
+# Job batch de embeddings del Recommender v1 (F3). Corre en el runner de GitHub
+# (no en Render) porque sentence-transformers necesita torch (~700MB). Ver ADR-012.
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 04:00 UTC, nocturno
+  workflow_dispatch: {}    # disparo manual desde la pestaña Actions
+
+# Evita solapes si un run tarda más que el intervalo.
+concurrency:
+  group: embed-tracks
+  cancel-in-progress: false
+
+jobs:
+  embed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: jobs/embed/requirements.txt
+
+      - name: Instalar dependencias
+        run: pip install -r jobs/embed/requirements.txt
+
+      - name: Generar embeddings
+        run: python jobs/embed/embed.py
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

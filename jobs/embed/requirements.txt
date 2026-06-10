@@ -1,0 +1,7 @@
+# Job batch de embeddings (corre en GitHub Actions, NO en Render).
+# sentence-transformers arrastra torch (~700MB) — por eso vive aquí, fuera del
+# servicio FastAPI (free tier 512MB). Ver ADR-012.
+sentence-transformers==3.3.1
+psycopg[binary]==3.2.3
+pgvector==0.3.6
+numpy==2.1.3

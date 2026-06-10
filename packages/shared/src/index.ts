@@ -96,3 +96,45 @@ export interface HistoryPage {
   /** Cursor opaco para la siguiente página; null si no hay más. */
   nextCursor: string | null;
 }
+
+// ── F3: Recommender service (IA de contenido) ─────────────────────
+
+/**
+ * Explicabilidad de una recomendación (§6.5): la UI lo traduce a un texto como
+ * "Porque escuchaste X". Diferenciador frente a las cajas negras comerciales.
+ */
+export interface RecommendationReason {
+  /** "similar_track" (vecino de un ancla) | "taste" (centroide de gustos). */
+  type: 'similar_track' | 'taste';
+  /** Señal usada: por ahora "tags" | "content" (texto). Acústico/colab en F4. */
+  signal: string;
+  /** trackId ancla cuando type === "similar_track". */
+  anchor?: string | null;
+}
+
+/** Pista recomendada: un `Track` enriquecido con score [0..1] y su explicación. */
+export interface RecommendedTrack extends Track {
+  /** Similitud coseno 0..1 (1 = idéntico en contenido). */
+  score: number;
+  reason: RecommendationReason;
+}
+
+/**
+ * Respuesta de "Para ti". `onboarded=false` → la UI muestra el onboarding de
+ * géneros (cold start, §6.6) en vez de una lista vacía.
+ */
+export interface ForMeResponse {
+  onboarded: boolean;
+  tracks: RecommendedTrack[];
+}
+
+/** Entrada del onboarding: 3–5 géneros elegidos por el usuario. */
+export interface OnboardingInput {
+  genres: string[];
+}
+
+/** Resultado del onboarding. `tasteSeeded=false` si aún no había corpus embebido. */
+export interface OnboardingResult {
+  onboarded: boolean;
+  tasteSeeded: boolean;
+}

@@ -19,6 +19,7 @@ import { buildAuthRoutes } from './interfaces/auth.routes.js';
 import { buildProxyRoutes } from './interfaces/proxy.routes.js';
 import { buildUsersProxyRoutes } from './interfaces/users.proxy.routes.js';
 import { buildAccountRoutes } from './interfaces/account.routes.js';
+import { buildRecommenderProxyRoutes } from './interfaces/recommender.proxy.routes.js';
 
 const logger = pino({ name: 'gateway' });
 
@@ -38,6 +39,7 @@ if (!process.env.REDIS_URL) {
 const auth = new AuthService(users, keys, refreshStore);
 const musicServiceUrl = process.env.MUSIC_SERVICE_URL ?? 'http://localhost:4002';
 const usersServiceUrl = process.env.USERS_SERVICE_URL ?? 'http://localhost:4003';
+const recommenderServiceUrl = process.env.RECOMMENDER_SERVICE_URL ?? 'http://localhost:4004';
 
 const app = express();
 // Render pone un proxy delante: confiar en el primer salto para que el rate
@@ -74,6 +76,8 @@ app.use('/api/v1', buildProxyRoutes(musicServiceUrl));
 // likes/historial/eventos hacia el users service.
 app.use('/api/v1', buildAccountRoutes(users, auth));
 app.use('/api/v1', buildUsersProxyRoutes(usersServiceUrl));
+// F3: proxy de recomendaciones (similar/for-me/onboarding) al Recommender service.
+app.use('/api/v1', buildRecommenderProxyRoutes(recommenderServiceUrl));
 
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', service: 'gateway' });
