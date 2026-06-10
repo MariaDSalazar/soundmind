@@ -17,19 +17,25 @@ export interface KeyPair {
  * Las claves NUNCA se versionan en git.
  */
 /**
- * Normaliza un PEM venido de una variable de entorno: algunos paneles (Render)
- * rompen los saltos de línea reales, así que se permite pegar la clave en UNA
- * sola línea usando `\n` literales, que aquí se convierten en saltos reales.
+ * Resuelve una clave PEM venida de una variable de entorno admitiendo 3 formas
+ * (los paneles tipo Render rompen los saltos de línea reales):
+ *   1. PEM multilínea normal.
+ *   2. PEM en una línea con `\n` literales (se reconstruyen).
+ *   3. PEM en **base64** (a prueba de balas: sin saltos ni caracteres especiales).
  */
-function normalizePem(pem: string): string {
-  return pem.includes('\\n') ? pem.replace(/\\n/g, '\n') : pem;
+export function loadPem(value: string): string {
+  const v = value.trim();
+  if (v.includes('BEGIN')) {
+    return v.includes('\\n') ? v.replace(/\\n/g, '\n') : v;
+  }
+  return Buffer.from(v, 'base64').toString('utf8'); // forma base64
 }
 
 export function loadKeys(env: NodeJS.ProcessEnv): KeyPair {
   if (env.JWT_PRIVATE_KEY && env.JWT_PUBLIC_KEY) {
     return {
-      privateKey: normalizePem(env.JWT_PRIVATE_KEY),
-      publicKey: normalizePem(env.JWT_PUBLIC_KEY),
+      privateKey: loadPem(env.JWT_PRIVATE_KEY),
+      publicKey: loadPem(env.JWT_PUBLIC_KEY),
     };
   }
 
