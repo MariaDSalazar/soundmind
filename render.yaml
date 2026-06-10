@@ -39,9 +39,10 @@ services:
         sync: false # URL del frontend en Netlify, ej. https://soundmind19.netlify.app
       # F2: el gateway ahora persiste usuarios en PostgreSQL (Neon)
       - key: DATABASE_URL
-        sync: false # Neon (pooled) — el mismo de la BD de producción
+        sync: false # Neon pooled. IMPORTANTE: usar solo ?sslmode=require — quitar
+                    # &channel_binding=require (rompe el driver pg en el Docker de Render)
       - key: JWT_PRIVATE_KEY
-        sync: false # PEM completo — ver "Generar claves" en el README
+        sync: false # PEM o base64 (recomendado: base64, no se rompe al pegar)
       - key: JWT_PUBLIC_KEY
         sync: false
 

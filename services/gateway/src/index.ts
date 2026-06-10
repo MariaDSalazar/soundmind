@@ -60,9 +60,9 @@ app.get('/healthz', (_req, res) => {
 
 // Manejador de errores: loguea la causa real de cualquier 500 (antes se perdían).
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // Se loguea la causa (visible en Render), pero NO se expone al cliente.
   logger.error({ err: { message: err.message, stack: err.stack } }, 'Error no manejado');
-  // TEMPORAL (debug deploy): exponer el mensaje para diagnosticar el 500 en prod.
-  res.status(500).json({ type: 'about:blank', title: 'Error interno del servidor', status: 500, detail: err.message });
+  res.status(500).json({ type: 'about:blank', title: 'Error interno del servidor', status: 500 });
 });
 
 const port = Number(process.env.GATEWAY_PORT ?? 4000);
