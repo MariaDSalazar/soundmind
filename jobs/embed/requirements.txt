@@ -3,5 +3,5 @@
 # servicio FastAPI (free tier 512MB). Ver ADR-012.
 sentence-transformers==3.3.1
 psycopg[binary]==3.2.3
-pgvector==0.3.6
+pgvector==0.4.2
 numpy==2.1.3
