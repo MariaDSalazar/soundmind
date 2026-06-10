@@ -20,6 +20,10 @@
     "concurrently": "^9.1.2",
     "typescript": "^5.7.3"
   },
+  "_overrides_note": "shell-quote forzado a >1.8.3: concurrently (solo dev) arrastra la versión con la vuln crítica GHSA-w7jw-789q-3m8p.",
+  "overrides": {
+    "shell-quote": "^1.8.4"
+  },
   "engines": {
     "node": ">=22"
   }
