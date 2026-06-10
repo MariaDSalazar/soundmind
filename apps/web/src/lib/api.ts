@@ -1,4 +1,12 @@
-import type { HistoryPage, Like, ListenEventInput, SearchResponse } from '@soundmind/shared';
+import type {
+  ForMeResponse,
+  HistoryPage,
+  Like,
+  ListenEventInput,
+  OnboardingResult,
+  RecommendedTrack,
+  SearchResponse,
+} from '@soundmind/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
 
@@ -129,4 +137,31 @@ export async function recordListenEvent(token: string, event: ListenEventInput):
     headers: { ...authHeaders(token), 'content-type': 'application/json' },
     body: JSON.stringify(event),
   });
+}
+
+// ── F3: recomendaciones (IA de contenido) ────────────────
+/** Géneros disponibles en el corpus (para el selector de onboarding). Pública. */
+export async function getGenres(): Promise<string[]> {
+  return unwrap(await fetch(`${API_URL}/recommendations/onboarding/genres`));
+}
+
+/** Siembra el gusto del usuario a partir de 3–5 géneros (cold start). */
+export async function onboard(token: string, genres: string[]): Promise<OnboardingResult> {
+  return unwrap(
+    await fetch(`${API_URL}/recommendations/onboarding`, {
+      method: 'POST',
+      headers: { ...authHeaders(token), 'content-type': 'application/json' },
+      body: JSON.stringify({ genres }),
+    }),
+  );
+}
+
+/** "Para ti": recomendaciones según el gusto. `onboarded=false` → mostrar onboarding. */
+export async function getForMe(token: string): Promise<ForMeResponse> {
+  return unwrap(await fetch(`${API_URL}/recommendations/for-me`, { headers: authHeaders(token) }));
+}
+
+/** "Más como esta": pistas similares a una dada (por contenido). Pública. */
+export async function getSimilar(trackId: string): Promise<RecommendedTrack[]> {
+  return unwrap(await fetch(`${API_URL}/recommendations/similar/${encodeURIComponent(trackId)}`));
 }

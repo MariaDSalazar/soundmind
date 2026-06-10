@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AudioWaveform, Clock, Search as SearchIcon } from 'lucide-react'; // Lucide (ISC)
+import { AudioWaveform, Clock, Search as SearchIcon, Sparkles } from 'lucide-react'; // Lucide (ISC)
 import type { Track } from '@soundmind/shared';
 import { addLike, getLikes, removeLike, searchTracks } from './lib/api';
 import { useAuthStore } from './store/auth';
+import { useDiscoverStore } from './store/discover';
 import { SearchBar } from './components/SearchBar';
 import { TrackList } from './components/TrackList';
 import { HistoryView } from './components/HistoryView';
+import { DiscoverView } from './components/DiscoverView';
 import { PlayerBar } from './components/PlayerBar';
 import { AuthPanel } from './components/AuthPanel';
 
-type Tab = 'search' | 'history';
+type Tab = 'search' | 'foryou' | 'history';
 
 export default function App() {
   const [query, setQuery] = useState('');
@@ -22,7 +24,14 @@ export default function App() {
   }, [tab]);
   const token = useAuthStore((s) => s.token);
   const restore = useAuthStore((s) => s.restore);
+  const setSimilarTo = useDiscoverStore((s) => s.setSimilarTo);
   const queryClient = useQueryClient();
+
+  // "Más como esta": fija el ancla y salta a la pestaña Para ti.
+  const showSimilar = (track: Track) => {
+    setSimilarTo(track);
+    setTab('foryou');
+  };
 
   // Restaura la sesión desde la cookie de refresh al cargar la página.
   useEffect(() => {
@@ -72,6 +81,12 @@ export default function App() {
           <SearchIcon className="size-4" /> Buscar
         </button>
         <button
+          onClick={() => setTab('foryou')}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 font-medium transition ${tab === 'foryou' ? 'bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white shadow-lg shadow-fuchsia-500/25' : 'text-zinc-400 hover:text-white'}`}
+        >
+          <Sparkles className="size-4" /> Para ti
+        </button>
+        <button
           onClick={() => setTab('history')}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 font-medium transition ${tab === 'history' ? 'bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white shadow-lg shadow-fuchsia-500/25' : 'text-zinc-400 hover:text-white'}`}
         >
@@ -79,7 +94,7 @@ export default function App() {
         </button>
       </nav>
 
-      {tab === 'search' ? (
+      {tab === 'search' && (
         <>
           <SearchBar onSearch={setQuery} loading={isFetching} />
 
@@ -94,6 +109,7 @@ export default function App() {
               tracks={data?.tracks ?? []}
               likedIds={token ? likedIds : undefined}
               onToggleLike={token ? (t) => toggleLike.mutate(t) : undefined}
+              onSimilar={showSimilar}
             />
             {data && data.sources.length > 0 && (
               <p className="mt-4 text-center text-xs text-zinc-600">
@@ -102,7 +118,19 @@ export default function App() {
             )}
           </main>
         </>
-      ) : (
+      )}
+
+      {tab === 'foryou' && (
+        <main className="mt-2">
+          <DiscoverView
+            token={token}
+            likedIds={token ? likedIds : undefined}
+            onToggleLike={token ? (t) => toggleLike.mutate(t) : undefined}
+          />
+        </main>
+      )}
+
+      {tab === 'history' && (
         <main className="mt-2">
           <HistoryView />
         </main>

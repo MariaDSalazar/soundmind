@@ -1,4 +1,4 @@
-import { Heart, Music, Pause, Play } from 'lucide-react'; // Lucide: iconos open source (ISC)
+import { Heart, Music, Pause, Play, Sparkles } from 'lucide-react'; // Lucide: iconos open source (ISC)
 import type { Track } from '@soundmind/shared';
 import { usePlayerStore } from '../store/player';
 import { Equalizer } from './Equalizer';
@@ -15,9 +15,11 @@ interface Props {
   likedIds?: Set<string>;
   /** Alterna el like; si es undefined, no se muestra el corazón (sin sesión). */
   onToggleLike?: (track: Track) => void;
+  /** "Más como esta" (F3); si es undefined, no se muestra el botón. */
+  onSimilar?: (track: Track) => void;
 }
 
-export function TrackList({ tracks, likedIds, onToggleLike }: Props) {
+export function TrackList({ tracks, likedIds, onToggleLike, onSimilar }: Props) {
   const { current, isPlaying, play, toggle } = usePlayerStore();
 
   if (tracks.length === 0) {
@@ -62,6 +64,17 @@ export function TrackList({ tracks, likedIds, onToggleLike }: Props) {
                 <p className="truncate text-xs text-zinc-400">{track.artist}</p>
               </div>
             </button>
+
+            {onSimilar && (
+              <button
+                onClick={() => onSimilar(track)}
+                aria-label={`Más como ${track.title}`}
+                title="Más como esta"
+                className="shrink-0 text-zinc-500 transition hover:text-violet-300 active:scale-90"
+              >
+                <Sparkles className="size-[18px]" />
+              </button>
+            )}
 
             {onToggleLike && (
               <button
