@@ -1,0 +1,34 @@
+# Dependabot: PRs automáticos de actualización de dependencias (§9 supply chain).
+# Cubre el monorepo npm (raíz + workspaces), los 3 entornos Python y las actions.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/" # incluye workspaces (apps/*, services/*, packages/*)
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+
+  - package-ecosystem: pip
+    directory: "/services/recommender" # serving FastAPI
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "python"]
+
+  - package-ecosystem: pip
+    directory: "/jobs/embed" # batch de embeddings
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "python"]
+
+  - package-ecosystem: pip
+    directory: "/jobs/collab" # batch ALS
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "python"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: ["ci"]
