@@ -23,7 +23,9 @@ export function buildRecommenderProxyRoutes(recommenderServiceUrl: string): Rout
         ...(hasBody ? { 'content-type': 'application/json' } : {}),
       },
       body: hasBody ? JSON.stringify(body ?? {}) : undefined,
-      signal: AbortSignal.timeout(10_000),
+      // 30s: el recommender es Python en Render free y arranca más lento que los
+      // servicios Node; un cold start no debe traducirse en 502 para el usuario.
+      signal: AbortSignal.timeout(30_000),
     });
     const text = await upstream.text();
     return { status: upstream.status, payload: text ? JSON.parse(text) : null };
