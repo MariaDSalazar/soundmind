@@ -53,6 +53,10 @@ def ingest_tracks(conn) -> int:
               -- Solo fuentes libres/legales (ADR-011): no ingerir restos de
               -- pruebas con fuentes retiradas (deezer/saavn) al corpus del recomendador.
               AND track->>'source' IN ('jamendo', 'audius', 'archive')
+              -- Solo URLs reproducibles (https + host con dominio + ruta): descarta
+              -- pistas de prueba con stream_url falso (example.org, https://x/...).
+              AND track->>'streamUrl' LIKE 'https://%.%/%'
+              AND track->>'streamUrl' NOT LIKE '%example.%'
             ORDER BY track->>'id', created_at DESC
             ON CONFLICT (id) DO NOTHING
             """
