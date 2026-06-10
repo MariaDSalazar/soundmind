@@ -1,34 +1,57 @@
 # Dependabot: PRs automáticos de actualización de dependencias (§9 supply chain).
 # Cubre el monorepo npm (raíz + workspaces), los 3 entornos Python y las actions.
+#
+# Estrategia anti-ruido: los updates MINOR+PATCH se agrupan en UN PR por ecosistema;
+# los MAJOR quedan sueltos a propósito (cambios potencialmente rompedores → revisar
+# uno a uno, p. ej. numpy 1.x→2.x en el batch ALS). Límite bajo de PRs abiertos.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: "/" # incluye workspaces (apps/*, services/*, packages/*)
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     labels: ["dependencies"]
+    groups:
+      npm-minor-patch:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: pip
     directory: "/services/recommender" # serving FastAPI
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     labels: ["dependencies", "python"]
+    groups:
+      recommender-minor-patch:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: pip
     directory: "/jobs/embed" # batch de embeddings
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     labels: ["dependencies", "python"]
+    groups:
+      embed-minor-patch:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: pip
     directory: "/jobs/collab" # batch ALS
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     labels: ["dependencies", "python"]
+    groups:
+      collab-minor-patch:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     labels: ["ci"]
+    groups:
+      actions-minor-patch:
+        update-types: ["minor", "patch"]
