@@ -58,5 +58,11 @@ app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', service: 'gateway' });
 });
 
+// Manejador de errores: loguea la causa real de cualquier 500 (antes se perdían).
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error({ err: { message: err.message, stack: err.stack } }, 'Error no manejado');
+  res.status(500).json({ type: 'about:blank', title: 'Error interno del servidor', status: 500 });
+});
+
 const port = Number(process.env.GATEWAY_PORT ?? 4000);
 app.listen(port, () => logger.info({ port }, 'Gateway escuchando'));
