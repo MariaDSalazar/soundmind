@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@soundmind/shared": "*",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.4.2",
     "express": "^5.1.0",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@soundmind/shared": "*",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.4.2",
     "express": "^5.1.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
