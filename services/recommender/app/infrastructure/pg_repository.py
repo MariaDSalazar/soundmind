@@ -99,32 +99,37 @@ class PgRecommendationRepository:
             # interno colaborativo) y el contexto. Las subconsultas escalares de
             # taste_vec/factors dan NULL si el usuario no tiene esa señal → el
             # ranker hace fallback. Se excluye lo ya reproducido/completado.
+            # Subconsulta: el ORDER BY pre-filtra por la suma de señales, pero un
+            # alias de salida no puede usarse DENTRO de una expresión del ORDER BY
+            # (Postgres lo tomaría como columna de entrada) → se envuelve.
             with conn.cursor(row_factory=dict_row) as cur:
                 cur.execute(
                     f"""
-                    SELECT {_TRACK_COLS},
-                      CASE WHEN e.content_vec IS NOT NULL THEN
-                        1 - (e.content_vec <=> (SELECT taste_vec FROM user_profiles WHERE user_id = %(uid)s))
-                      END AS content_score,
-                      CASE WHEN f.factors IS NOT NULL THEN
-                        -(f.factors <#> (SELECT factors FROM user_factors WHERE user_id = %(uid)s))
-                      END AS collab_score,
-                      ts.avg_hour,
-                      EXISTS (
+                    SELECT * FROM (
+                      SELECT {_TRACK_COLS},
+                        CASE WHEN e.content_vec IS NOT NULL THEN
+                          1 - (e.content_vec <=> (SELECT taste_vec FROM user_profiles WHERE user_id = %(uid)s))
+                        END AS content_score,
+                        CASE WHEN f.factors IS NOT NULL THEN
+                          -(f.factors <#> (SELECT factors FROM user_factors WHERE user_id = %(uid)s))
+                        END AS collab_score,
+                        ts.avg_hour,
+                        EXISTS (
+                          SELECT 1 FROM listen_events le
+                          WHERE le.user_id = %(uid)s AND le.track_id = t.id AND le.event_type = 'skip'
+                        ) AS recently_skipped
+                      FROM tracks t
+                      LEFT JOIN track_embeddings e ON e.track_id = t.id
+                      LEFT JOIN track_factors f ON f.track_id = t.id
+                      LEFT JOIN track_stats ts ON ts.track_id = t.id
+                      WHERE NOT EXISTS (
                         SELECT 1 FROM listen_events le
-                        WHERE le.user_id = %(uid)s AND le.track_id = t.id AND le.event_type = 'skip'
-                      ) AS recently_skipped
-                    FROM tracks t
-                    LEFT JOIN track_embeddings e ON e.track_id = t.id
-                    LEFT JOIN track_factors f ON f.track_id = t.id
-                    LEFT JOIN track_stats ts ON ts.track_id = t.id
-                    WHERE NOT EXISTS (
-                      SELECT 1 FROM listen_events le
-                      WHERE le.user_id = %(uid)s AND le.track_id = t.id
-                        AND le.event_type IN ('play', 'complete')
-                    )
-                      AND (e.content_vec IS NOT NULL OR f.factors IS NOT NULL)
-                    ORDER BY COALESCE(content_score, 0) + COALESCE(collab_score, 0) DESC
+                        WHERE le.user_id = %(uid)s AND le.track_id = t.id
+                          AND le.event_type IN ('play', 'complete')
+                      )
+                        AND (e.content_vec IS NOT NULL OR f.factors IS NOT NULL)
+                    ) q
+                    ORDER BY COALESCE(q.content_score, 0) + COALESCE(q.collab_score, 0) DESC
                     LIMIT %(pool)s
                     """,
                     {"uid": user_id, "pool": pool},
