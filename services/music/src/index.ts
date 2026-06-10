@@ -1,3 +1,6 @@
+// Cargar .env ANTES de leer process.env (cierra deuda F1: los servicios corrían
+// con tsx sin dotenv). En Render las variables vienen del entorno y esto es no-op.
+import 'dotenv/config';
 import express from 'express';
 import { pino } from 'pino';
 import { pinoHttp } from 'pino-http';

@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import type { AuthTokens, UserProfile } from '@soundmind/shared';
 import type { UserRepository } from '../domain/user.repository.js';
 import type { KeyPair } from '../infrastructure/keys.js';
+import { InMemoryRefreshTokenStore, type RefreshTokenStore } from './refresh-token-store.js';
 
 const ACCESS_TTL_S = 15 * 60; // 15 min (ver ARQUITECTURA.md §9)
 const REFRESH_TTL_S = 7 * 24 * 60 * 60; // 7 días
@@ -14,22 +15,17 @@ export class AuthError extends Error {
   }
 }
 
-interface RefreshRecord {
-  userId: string;
-  expiresAt: number;
-}
-
 /**
  * Autenticación con Argon2id + JWT RS256 y refresh tokens ROTATIVOS:
- * cada uso de un refresh token lo invalida y emite uno nuevo.
- * F1: store de refresh en memoria. TODO(F2): mover a Redis (Upstash).
+ * cada uso de un refresh token lo invalida y emite uno nuevo. El store de
+ * refresh se inyecta (puerto RefreshTokenStore): en producción Redis/Upstash,
+ * en tests/local el de memoria por defecto.
  */
 export class AuthService {
-  private readonly refreshStore = new Map<string, RefreshRecord>();
-
   constructor(
     private readonly users: UserRepository,
     private readonly keys: KeyPair,
+    private readonly refreshStore: RefreshTokenStore = new InMemoryRefreshTokenStore(),
   ) {}
 
   async register(email: string, password: string, displayName: string) {
@@ -53,8 +49,7 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    const record = this.refreshStore.get(refreshToken);
-    this.refreshStore.delete(refreshToken); // rotación: un solo uso
+    const record = await this.refreshStore.take(refreshToken); // rotación: un solo uso
     if (!record || record.expiresAt < Date.now()) {
       throw new AuthError('Refresh token inválido o expirado', 401);
     }
@@ -80,7 +75,7 @@ export class AuthService {
     }
   }
 
-  private issueTokens(userId: string, email: string, displayName: string) {
+  private async issueTokens(userId: string, email: string, displayName: string) {
     const accessToken = jwt.sign({ email, name: displayName }, this.keys.privateKey, {
       algorithm: 'RS256',
       subject: userId,
@@ -89,10 +84,11 @@ export class AuthService {
     });
 
     const refreshToken = randomUUID();
-    this.refreshStore.set(refreshToken, {
-      userId,
-      expiresAt: Date.now() + REFRESH_TTL_S * 1000,
-    });
+    await this.refreshStore.save(
+      refreshToken,
+      { userId, expiresAt: Date.now() + REFRESH_TTL_S * 1000 },
+      REFRESH_TTL_S,
+    );
 
     const tokens: AuthTokens = { accessToken, expiresInS: ACCESS_TTL_S };
     return { tokens, refreshToken, refreshTtlS: REFRESH_TTL_S };

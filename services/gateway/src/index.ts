@@ -1,14 +1,20 @@
+// Cargar .env ANTES de leer process.env (cierra deuda F1: los servicios corrían
+// con tsx sin dotenv). En Render las variables vienen del entorno y esto es no-op.
+import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import { Redis } from 'ioredis';
 import { pino } from 'pino';
 import { pinoHttp } from 'pino-http';
 import { loadKeys } from './infrastructure/keys.js';
 import { createPool } from './infrastructure/db.js';
 import { PostgresUserRepository } from './infrastructure/postgres.user.repository.js';
 import { AuthService } from './application/auth.service.js';
+import { InMemoryRefreshTokenStore } from './application/refresh-token-store.js';
+import { RedisRefreshTokenStore } from './infrastructure/redis.refresh-token-store.js';
 import { buildAuthRoutes } from './interfaces/auth.routes.js';
 import { buildProxyRoutes } from './interfaces/proxy.routes.js';
 import { buildUsersProxyRoutes } from './interfaces/users.proxy.routes.js';
@@ -20,7 +26,16 @@ const logger = pino({ name: 'gateway' });
 const keys = loadKeys(process.env);
 const pool = createPool(process.env.DATABASE_URL ?? '');
 const users = new PostgresUserRepository(pool);
-const auth = new AuthService(users, keys);
+
+// Refresh tokens en Redis si hay REDIS_URL (sobrevive a reinicios/deploys de
+// Render); si no, fallback a memoria para no romper el arranque local.
+const refreshStore = process.env.REDIS_URL
+  ? new RedisRefreshTokenStore(new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: 3 }))
+  : new InMemoryRefreshTokenStore();
+if (!process.env.REDIS_URL) {
+  logger.warn('Sin REDIS_URL — refresh tokens en memoria (se pierden al reiniciar). Configúralo en Render.');
+}
+const auth = new AuthService(users, keys, refreshStore);
 const musicServiceUrl = process.env.MUSIC_SERVICE_URL ?? 'http://localhost:4002';
 const usersServiceUrl = process.env.USERS_SERVICE_URL ?? 'http://localhost:4003';
 
