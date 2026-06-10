@@ -8,6 +8,7 @@ const files = [
   'services/users/migrations/002_listen_events_track_snapshot.sql',
   'services/recommender/migrations/003_tracks_embeddings_profiles.sql',
   'services/recommender/migrations/004_collaborative_factors.sql',
+  'services/recommender/migrations/005_tracks_solo_fuentes_legales.sql',
 ];
 
 const pool = new pg.Pool({

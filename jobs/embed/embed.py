@@ -50,6 +50,9 @@ def ingest_tracks(conn) -> int:
               COALESCE((track->>'isPreview')::boolean, false)
             FROM listen_events
             WHERE track IS NOT NULL AND track->>'id' IS NOT NULL
+              -- Solo fuentes libres/legales (ADR-011): no ingerir restos de
+              -- pruebas con fuentes retiradas (deezer/saavn) al corpus del recomendador.
+              AND track->>'source' IN ('jamendo', 'audius', 'archive')
             ORDER BY track->>'id', created_at DESC
             ON CONFLICT (id) DO NOTHING
             """
