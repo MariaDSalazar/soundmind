@@ -40,9 +40,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Python 3.11: `implicit` 0.7.2 publica wheels hasta 3.11; en 3.12 pip
+      # intentaría compilar desde fuente (lento/frágil). Ver jobs/collab/requirements.txt.
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
           cache: pip
           cache-dependency-path: jobs/collab/requirements.txt
 

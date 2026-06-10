@@ -1,6 +1,7 @@
-# Batch colaborativo (F4) — corre en GitHub Actions, NO en Render.
+# Batch colaborativo (F4) — corre en GitHub Actions con Python 3.11, NO en Render.
 # `implicit` (ALS) arrastra scipy/BLAS; por eso vive aquí, fuera del serving.
-# numpy<2 + scipy 1.13 = combo compatible con implicit 0.7.2.
+# OJO: implicit 0.7.2 solo publica wheels hasta cp311 → el workflow usa Python
+# 3.11 (en 3.12 pip compilaría desde fuente). numpy<2 + scipy 1.13 = compatible.
 implicit==0.7.2
 numpy==1.26.4
 scipy==1.13.1
