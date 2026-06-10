@@ -49,6 +49,7 @@ app.include_router(
 )
 
 
-@app.get("/healthz")
+# GET y HEAD: monitores de uptime (UptimeRobot) mandan HEAD por defecto.
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz():
     return {"status": "ok", "service": "recommender"}
