@@ -33,9 +33,36 @@ services:
         value: "10000"
       - key: MUSIC_SERVICE_URL
         value: https://soundmind-music.onrender.com
+      - key: USERS_SERVICE_URL
+        value: https://soundmind-users.onrender.com
       - key: CORS_ORIGINS
-        sync: false # URL del frontend en Vercel, ej. https://soundmind.vercel.app
+        sync: false # URL del frontend en Netlify, ej. https://soundmind19.netlify.app
+      # F2: el gateway ahora persiste usuarios en PostgreSQL (Neon)
+      - key: DATABASE_URL
+        sync: false # Neon (pooled) — el mismo de la BD de producción
       - key: JWT_PRIVATE_KEY
         sync: false # PEM completo — ver "Generar claves" en el README
       - key: JWT_PUBLIC_KEY
         sync: false
+
+  # F2: servicio de usuarios (perfil, likes, eventos de escucha)
+  - type: web
+    name: soundmind-users
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./services/users/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: USERS_PORT
+        value: "10000"
+      - key: LISTEN_EVENTS_STREAM
+        value: listen-events
+      - key: DATABASE_URL
+        sync: false # mismo Neon que el gateway
+      - key: REDIS_URL
+        sync: false # Upstash (rediss://) para los Redis Streams
+      - key: JWT_PUBLIC_KEY
+        sync: false # MISMA clave pública del gateway (verifica sus JWT)

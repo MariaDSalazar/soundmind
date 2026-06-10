@@ -6,19 +6,23 @@ import rateLimit from 'express-rate-limit';
 import { pino } from 'pino';
 import { pinoHttp } from 'pino-http';
 import { loadKeys } from './infrastructure/keys.js';
-import { InMemoryUserRepository } from './domain/user.repository.js';
+import { createPool } from './infrastructure/db.js';
+import { PostgresUserRepository } from './infrastructure/postgres.user.repository.js';
 import { AuthService } from './application/auth.service.js';
 import { buildAuthRoutes } from './interfaces/auth.routes.js';
 import { buildProxyRoutes } from './interfaces/proxy.routes.js';
-import { requireAuth } from './interfaces/middleware.js';
+import { buildUsersProxyRoutes } from './interfaces/users.proxy.routes.js';
+import { buildAccountRoutes } from './interfaces/account.routes.js';
 
 const logger = pino({ name: 'gateway' });
 
-// Composition root
+// Composition root — F2: persistencia real en Postgres (ADR-008).
 const keys = loadKeys(process.env);
-const users = new InMemoryUserRepository();
+const pool = createPool(process.env.DATABASE_URL ?? '');
+const users = new PostgresUserRepository(pool);
 const auth = new AuthService(users, keys);
 const musicServiceUrl = process.env.MUSIC_SERVICE_URL ?? 'http://localhost:4002';
+const usersServiceUrl = process.env.USERS_SERVICE_URL ?? 'http://localhost:4003';
 
 const app = express();
 app.disable('x-powered-by');
@@ -45,11 +49,10 @@ app.use(
 
 app.use('/api/v1/auth', buildAuthRoutes(auth));
 app.use('/api/v1', buildProxyRoutes(musicServiceUrl));
-
-// Ruta protegida de ejemplo: perfil del usuario autenticado
-app.get('/api/v1/me', requireAuth(auth), (req, res) => {
-  res.json(req.user);
-});
+// F2: perfil/consentimiento/borrado (gateway, dueño de `users`) y proxy de
+// likes/historial/eventos hacia el users service.
+app.use('/api/v1', buildAccountRoutes(users, auth));
+app.use('/api/v1', buildUsersProxyRoutes(usersServiceUrl));
 
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', service: 'gateway' });

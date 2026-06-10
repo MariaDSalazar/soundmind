@@ -5,10 +5,11 @@
 
 /**
  * Fuentes de música legal soportadas:
- * - jamendo/audius: streaming completo (Creative Commons / artistas independientes)
- * - deezer: catálogo comercial vía previews oficiales de 30s
+ * Todas son streaming COMPLETO y legal:
+ * - jamendo/audius: Creative Commons / artistas independientes
+ * - archive: dominio público / netlabels (Internet Archive)
  */
-export type TrackSource = 'jamendo' | 'audius' | 'deezer';
+export type TrackSource = 'jamendo' | 'audius' | 'archive';
 
 export interface Track {
   /** Id interno: `${source}:${sourceTrackId}` */
@@ -51,4 +52,47 @@ export interface ProblemDetails {
   title: string;
   status: number;
   detail?: string;
+}
+
+// ── F2: Users service (perfil y eventos) ──────────────────────────
+
+/** Tipos de evento de escucha (ver ARQUITECTURA.md §10). */
+export type ListenEventType = 'play' | 'skip' | 'complete';
+
+/** Evento de escucha que el cliente envía y que se publica en Redis Streams. */
+export interface ListenEventInput {
+  /** Id de pista `${source}:${sourceTrackId}`. */
+  trackId: string;
+  eventType: ListenEventType;
+  /** Milisegundos reproducidos (para distinguir skip temprano de play completo). */
+  playedMs: number;
+  device?: string;
+  /**
+   * Snapshot inmutable de la pista al momento del evento (event sourcing): permite
+   * reconstruir y reproducir el historial sin una tabla `tracks` (diferida a F3).
+   */
+  track?: Track;
+}
+
+/** Evento de escucha persistido / devuelto en el historial. */
+export interface ListenEvent extends ListenEventInput {
+  /** UUID; clave de idempotencia compartida entre Postgres y el stream (§8). */
+  eventId: string;
+  userId: string;
+  /** Hora del día (0–23) derivada en servidor; señal contextual para la IA (§6.3). */
+  contextHour: number;
+  createdAt: string;
+}
+
+export interface Like {
+  userId: string;
+  trackId: string;
+  createdAt: string;
+}
+
+/** Página cursor-based del historial (ARQUITECTURA.md §8). */
+export interface HistoryPage {
+  events: ListenEvent[];
+  /** Cursor opaco para la siguiente página; null si no hay más. */
+  nextCursor: string | null;
 }

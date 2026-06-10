@@ -1,1 +1,102 @@
 @import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Fondo fresco: auras de color (violeta / fucsia / cyan) sobre base oscura.
+   Fijo para que no se mueva al hacer scroll. */
+body {
+  background-color: #0a0712;
+  background-image:
+    radial-gradient(55rem 55rem at 110% -10%, rgba(217, 70, 239, 0.20), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 5%, rgba(99, 102, 241, 0.22), transparent 55%),
+    radial-gradient(45rem 45rem at 50% 115%, rgba(34, 211, 238, 0.14), transparent 60%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Scrollbar a tono */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.65);
+}
+
+/* ── Microanimaciones ───────────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+/* Listas: aparición suave (con stagger vía animation-delay inline) */
+.animate-rise {
+  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Barra del player: sube al aparecer */
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Popovers/menús */
+.animate-pop {
+  animation: pop-in 0.18s ease-out both;
+  transform-origin: top right;
+}
+/* Barras del ecualizador (pista sonando) */
+.eq-bar {
+  width: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(to top, #e879f9, #a78bfa);
+  animation: eq 0.9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise, .animate-slide-up, .animate-pop, .eq-bar { animation: none; }
+}
+
+/* Slider de volumen redondeado y a tono */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  height: 14px;
+  width: 14px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #e879f9, #a78bfa);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.6);
+}

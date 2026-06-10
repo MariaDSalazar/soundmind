@@ -46,19 +46,21 @@ describe('SearchTracksUseCase', () => {
     expect(result.sources).toEqual(['audius']);
   });
 
-  it('intercala fuentes round-robin preservando la relevancia de cada API', async () => {
+  it('muestra la fuente primaria completa primero y luego intercala el resto', async () => {
     const useCase = new SearchTracksUseCase([
-      okProvider('deezer'),
+      okProvider('archive'),
       okProvider('jamendo'),
       okProvider('audius'),
     ]);
     const result = await useCase.execute('lofi');
 
     expect(result.tracks.map((t) => t.id)).toEqual([
-      'deezer:1',
+      // 1) fuente primaria completa
+      'archive:1',
+      'archive:2',
+      // 2) round-robin del resto
       'jamendo:1',
       'audius:1',
-      'deezer:2',
       'jamendo:2',
       'audius:2',
     ]);

@@ -3,6 +3,8 @@ export interface UserRecord {
   email: string;
   passwordHash: string;
   displayName: string;
+  /** Consentimiento de tracking de escucha (§9). Por defecto false. */
+  consentTracking?: boolean;
   createdAt: Date;
 }
 

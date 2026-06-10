@@ -5,6 +5,10 @@ import type { MusicProvider } from '../domain/ports.js';
  * PATTERN: Facade — caso de uso que orquesta múltiples proveedores tras una
  * sola operación. Resiliencia: Promise.allSettled hace que una fuente caída
  * no rompa la búsqueda (degradación elegante, ver ARQUITECTURA.md §8).
+ *
+ * Orden de resultados: la fuente PRIMARIA (la primera por prioridad del factory)
+ * se muestra COMPLETA primero; el resto de plataformas se intercala round-robin
+ * a continuación, preservando la relevancia que trae cada API.
  */
 export class SearchTracksUseCase {
   constructor(private readonly providers: MusicProvider[]) {}
@@ -22,13 +26,19 @@ export class SearchTracksUseCase {
       bySource.push(result.value);
     });
 
-    // Round-robin entre fuentes PRESERVANDO el orden de relevancia que
-    // ya trae cada API — sin sesgar hacia una sola fuente.
     const tracks: Track[] = [];
-    const maxLen = Math.max(0, ...bySource.map((list) => list.length));
-    for (let i = 0; i < maxLen; i++) {
-      for (const list of bySource) {
-        if (i < list.length) tracks.push(list[i]);
+    if (bySource.length > 0) {
+      // 1) La fuente primaria (la primera por prioridad del factory) va COMPLETA.
+      tracks.push(...bySource[0]);
+
+      // 2) El resto de plataformas se intercala round-robin, preservando la
+      //    relevancia de cada API y sin sesgar hacia una sola.
+      const rest = bySource.slice(1);
+      const maxLen = Math.max(0, ...rest.map((list) => list.length));
+      for (let i = 0; i < maxLen; i++) {
+        for (const list of rest) {
+          if (i < list.length) tracks.push(list[i]);
+        }
       }
     }
 

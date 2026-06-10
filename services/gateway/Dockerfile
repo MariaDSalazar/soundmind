@@ -9,6 +9,7 @@ COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY services/gateway/package.json services/gateway/
 COPY services/music/package.json services/music/
+COPY services/users/package.json services/users/
 COPY apps/web/package.json apps/web/
 RUN npm ci
 

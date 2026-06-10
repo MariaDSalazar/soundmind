@@ -1,5 +1,5 @@
-# Music service — contexto de build: la RAÍZ del monorepo
-#   docker build -f services/music/Dockerfile .
+# Users service — contexto de build: la RAÍZ del monorepo
+#   docker build -f services/users/Dockerfile .
 FROM node:22-bookworm-slim
 
 WORKDIR /app
@@ -13,10 +13,10 @@ COPY apps/web/package.json apps/web/
 RUN npm ci
 
 COPY packages/shared packages/shared
-COPY services/music services/music
+COPY services/users services/users
 
 USER node
 
 ENV NODE_ENV=production
-EXPOSE 4002
-CMD ["npm", "run", "start", "-w", "services/music"]
+EXPOSE 4003
+CMD ["npm", "run", "start", "-w", "services/users"]

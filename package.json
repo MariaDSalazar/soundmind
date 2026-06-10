@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n gateway,music,web -c blue,green,magenta \"npm run dev -w services/gateway\" \"npm run dev -w services/music\" \"npm run dev -w apps/web\"",
+    "dev": "concurrently -n gateway,music,users,web -c blue,green,yellow,magenta \"npm run dev -w services/gateway\" \"npm run dev -w services/music\" \"npm run dev -w services/users\" \"npm run dev -w apps/web\"",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present"
