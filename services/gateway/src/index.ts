@@ -25,6 +25,10 @@ const musicServiceUrl = process.env.MUSIC_SERVICE_URL ?? 'http://localhost:4002'
 const usersServiceUrl = process.env.USERS_SERVICE_URL ?? 'http://localhost:4003';
 
 const app = express();
+// Render pone un proxy delante: confiar en el primer salto para que el rate
+// limiting (y req.ip) use la IP REAL del cliente (X-Forwarded-For), no la del
+// proxy compartida — si no, un solo cliente agota el cupo de todos.
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(
@@ -37,14 +41,16 @@ app.use(express.json({ limit: '16kb' }));
 app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 
-// Rate limiting: protege la API propia y las cuotas de las APIs externas
+// Rate limiting: protege la API propia y las cuotas de las APIs externas.
+// Por IP real (ver trust proxy). El de /auth es holgado porque el frontend
+// llama /auth/refresh en cada carga para restaurar la sesión.
 app.use(
   '/api/v1',
-  rateLimit({ windowMs: 60_000, limit: 100, standardHeaders: 'draft-8', legacyHeaders: false }),
+  rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false }),
 );
 app.use(
   '/api/v1/auth',
-  rateLimit({ windowMs: 15 * 60_000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false }),
+  rateLimit({ windowMs: 15 * 60_000, limit: 100, standardHeaders: 'draft-8', legacyHeaders: false }),
 );
 
 app.use('/api/v1/auth', buildAuthRoutes(auth));

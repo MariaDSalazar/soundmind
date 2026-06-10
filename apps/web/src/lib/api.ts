@@ -18,8 +18,18 @@ export interface Profile {
 async function unwrap<T>(res: Response): Promise<T> {
   if (res.status === 204) return undefined as T;
   const text = await res.text();
-  const body = text ? JSON.parse(text) : null;
-  if (!res.ok) throw new Error(body?.title ?? `Error ${res.status}`);
+  // Algunas respuestas no son JSON (p. ej. 429 "Too many requests" en texto
+  // plano); no reventar al parsear.
+  let body: { title?: string } | null = null;
+  try {
+    body = text ? (JSON.parse(text) as { title?: string }) : null;
+  } catch {
+    body = null;
+  }
+  if (!res.ok) {
+    if (res.status === 429) throw new Error('Demasiadas solicitudes — espera un momento e inténtalo de nuevo.');
+    throw new Error(body?.title ?? text.trim() ?? `Error ${res.status}`);
+  }
   return body as T;
 }
 
