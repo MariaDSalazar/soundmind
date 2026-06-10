@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CircleAlert,
   Loader2,
@@ -21,6 +22,14 @@ export function PlayerBar() {
   const { current, queue, index, isPlaying, isLoading, error, volume, toggle, next, prev, stop, setVolume, setLoading, fail } =
     usePlayerStore();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const queryClient = useQueryClient();
+
+  // Tras registrar un evento, refresca historial y "Para ti" (si no, el
+  // staleTime de React Query mostraría datos cacheados sin la escucha nueva).
+  const refreshAfterEvent = () => {
+    void queryClient.invalidateQueries({ queryKey: ['history'] });
+    void queryClient.invalidateQueries({ queryKey: ['forme'] });
+  };
 
   const hasPrev = index > 0;
   const hasNext = index >= 0 && index < queue.length - 1;
@@ -50,7 +59,11 @@ export function PlayerBar() {
   useEffect(() => {
     const token = useAuthStore.getState().token;
     if (!token || !current) return;
-    void recordListenEvent(token, { trackId: current.id, eventType: 'play', playedMs: 0, device: 'web', track: current });
+    void recordListenEvent(token, { trackId: current.id, eventType: 'play', playedMs: 0, device: 'web', track: current }).then(
+      refreshAfterEvent,
+    );
+    // refreshAfterEvent es estable (usa queryClient); el evento se emite por `current`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current]);
 
   // Media Session API: controles nativos del SO (teclado multimedia, lockscreen)
@@ -72,7 +85,7 @@ export function PlayerBar() {
         playedMs: Math.round((audioRef.current?.currentTime ?? 0) * 1000),
         device: 'web',
         track: current,
-      });
+      }).then(refreshAfterEvent);
     }
     if (hasNext) next();
     else stop();

@@ -87,7 +87,8 @@ export function TrackList({ tracks, likedIds, onToggleLike, onSimilar, reasonLab
             {onToggleLike && (
               <button
                 onClick={() => onToggleLike(track)}
-                aria-label={liked ? 'Quitar like' : 'Dar like'}
+                aria-label={liked ? 'Quitar de me gusta' : 'Me gusta'}
+                title={liked ? 'Quitar de me gusta' : 'Me gusta'}
                 aria-pressed={liked}
                 className={`shrink-0 transition active:scale-90 ${liked ? 'text-pink-500' : 'text-zinc-500 hover:text-pink-400'}`}
               >
