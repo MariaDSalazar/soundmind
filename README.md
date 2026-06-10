@@ -170,7 +170,7 @@ El **Recommender** (Python) y los **batch** son opcionales en local — ver
 - [x] **F2 — Perfil y eventos**: registro/login, likes, historial reproducible, Redis Streams, PostgreSQL, consentimiento (GDPR) — **desplegado**
 - [x] **F3 — IA de contenido**: embeddings + "más como esta" + onboarding — **desplegado**
 - [x] **F4 — IA híbrida**: colaborativo (ALS) + re-ranking contextual + explicabilidad — **desplegado**
-- [ ] **F5 — Pulido**: diagramas C4 ✓, Dependabot + CodeQL ✓, README ✓, cobertura de dominio >80% ✓ (CI la exige); pendiente video demo y Lighthouse
+- [x] **F5 — Pulido**: diagramas C4, Dependabot + CodeQL, README + demo en vivo, cobertura de dominio >80% (CI la exige) y `npm audit` limpio
 
 ## Licencia
 
