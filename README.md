@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](services/recommender)
 
-**▶️ Demo en vivo: <https://soundmind19.netlify.app>** · API: `https://soundmind-gateway.onrender.com`
+**▶️ Demo en vivo: <https://mariadsalazar.github.io/soundmind/>** · API: `https://soundmind-gateway.onrender.com`
 
 > 💤 Los servicios corren en free tier y se duermen; la primera carga puede tardar ~30 s en despertar.
 
