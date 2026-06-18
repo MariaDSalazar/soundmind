@@ -18,7 +18,7 @@ jobs:
   embed:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v5
         with:
@@ -38,7 +38,7 @@ jobs:
     needs: embed          # los factores referencian tracks ya ingeridos (FK)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Python 3.11: `implicit` 0.7.2 publica wheels hasta 3.11; en 3.12 pip
       # intentaría compilar desde fuente (lento/frágil). Ver jobs/collab/requirements.txt.
